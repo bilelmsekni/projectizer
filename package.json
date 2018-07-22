@@ -11,14 +11,15 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:extension.sayHello"
+    "workspaceContains:**/tsconfig.json",
+    "onCommand:extension.projectize"
   ],
   "main": "./out/extension",
   "contributes": {
     "commands": [
       {
-        "command": "extension.sayHello",
-        "title": "Hello World"
+        "command": "extension.projectize",
+        "title": "Projectize"
       }
     ]
   },
