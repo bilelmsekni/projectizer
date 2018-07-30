@@ -7,6 +7,8 @@ import { Project } from './project.model';
 export function activate(context: vscode.ExtensionContext): void {
     const projectController = new ProjectController();
     const treeController = new TreeController();
+    // save extension settings
+    // hide empty folders (vs code not handling it by default)
 
     const projects = projectController.identifyProjects().then(
         res => {

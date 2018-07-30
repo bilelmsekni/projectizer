@@ -1,0 +1,1 @@
+export const FILES_EXCLUDE = 'files.exclude';
