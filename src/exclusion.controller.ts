@@ -8,8 +8,24 @@ export class ExclusionController {
     updateExclusions(projects: Project[]): void {
         const exclusions = projects.map(p => this.analyseExcluded(p));
         const patterns = this.mergePatterns(exclusions);
-        const settings = this.updateSettings(patterns);
+        const allPatterns = this.addDependencies(patterns);
+        const settings = this.updateSettings(allPatterns);
         writeJson(this.settingsPath, settings);
+    }
+
+    private addDependencies(patterns: { [key: string]: boolean }): { [key: string]: object | boolean } {
+        const additionalPatterns: { [key: string]: object | boolean } = {};
+        const whenCondition = { 'when': '$(basename).ts' };
+        Object.keys(patterns).forEach(p => {
+            additionalPatterns[p] = true;
+            if (p.indexOf('.ts') !== -1) {
+                const html = p.replace('.ts', '.html');
+                const scss = p.replace('.ts', '.scss');
+                additionalPatterns[html] = whenCondition;
+                additionalPatterns[scss] = whenCondition;
+            }
+        });
+        return additionalPatterns;
     }
 
     private analyseExcluded(project: Project): string[] {
@@ -18,7 +34,7 @@ export class ExclusionController {
         return tsSettings.exclude || [];
     }
 
-    private updateSettings(patterns: { [key: string]: boolean }): { [key: string]: any } {
+    private updateSettings(patterns: { [key: string]: boolean | object }): { [key: string]: any } {
         const settings = this.getCurrentSettings();
         settings[FILES_EXCLUDE] = patterns;
         return settings;
