@@ -4,6 +4,17 @@
   "description": "Monorepo code manager",
   "version": "0.0.1",
   "publisher": "skible",
+  "icon": "projectizer_icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mseknibilel/projectizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mseknibilel/projectizer/issues"
+  },
+  "keywords": [
+    "angular monorepository"
+  ],
   "engines": {
     "vscode": "^1.25.0"
   },
