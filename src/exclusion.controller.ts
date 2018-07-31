@@ -6,8 +6,11 @@ import { workspace } from 'vscode';
 export class ExclusionController {
 
     updateExclusions(projects: Project[]): void {
-        const exclusions = projects.map(p => this.analyseExcluded(p));
-        const patterns = this.mergePatterns(exclusions);
+        const exclusions = projects
+            .filter(p => !this.isTestPattern(p))
+            .map(p => this.analyseExcluded(p));
+
+        const patterns = this.mergePatterns(exclusions, projects.some(p => this.isTestPattern(p)));
         const allPatterns = this.addDependencies(patterns);
         const settings = this.updateSettings(allPatterns);
         writeJson(this.settingsPath, settings);
@@ -18,7 +21,7 @@ export class ExclusionController {
         const whenCondition = { 'when': '$(basename).ts' };
         Object.keys(patterns).forEach(p => {
             additionalPatterns[p] = true;
-            if (p.indexOf('.ts') !== -1) {
+            if (p.includes('.ts')) {
                 const html = p.replace('.ts', '.html');
                 const scss = p.replace('.ts', '.scss');
                 additionalPatterns[html] = whenCondition;
@@ -49,19 +52,35 @@ export class ExclusionController {
         return {};
     }
 
-    private mergePatterns(newPatterns: string[][]): { [key: string]: boolean } {
+    private mergePatterns(newPatterns: string[][], withSpec: boolean): { [key: string]: boolean } {
         const result: { [key: string]: boolean } = {};
         if (newPatterns && newPatterns.length > 0) {
             let intersection = newPatterns[0];
             for (let i = 1; i < newPatterns.length; i++) {
-                intersection = intersection.filter(v => newPatterns[i].indexOf(v) !== -1);
+                intersection = intersection.filter(v => newPatterns[i].some(p => p === v));
             }
-            intersection.forEach(p => result[p] = true);
+            intersection.forEach(p => {
+                if (withSpec) {
+                    if (!this.isTestPattern(p)) {
+                        result[p] = true;
+                    }
+                } else {
+                    result[p] = true;
+                }
+
+            });
         }
         return result;
     }
 
     private get settingsPath(): string {
         return `${workspace.rootPath}\\.vscode\\settings.json`;
+    }
+
+    private isTestPattern(project: string | Project): boolean {
+        if (typeof (project) === 'string') {
+            return project.includes('.spec.ts') || project.includes('.spec-helpers.ts');
+        }
+        return project.config.includes('.spec.json');
     }
 }
