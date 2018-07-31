@@ -1,26 +1,30 @@
 'use strict';
-import * as vscode from 'vscode';
 import { ProjectController } from './project.controller';
-import { TreeController } from './tree.controller';
+import { ExclusionController } from './exclusion.controller';
 import { Project } from './project.model';
+import { SelectionController } from './selection.controller';
+import { window, commands, ExtensionContext } from 'vscode';
 
-export function activate(context: vscode.ExtensionContext): void {
+export function activate(context: ExtensionContext): void {
     const projectController = new ProjectController();
-    const treeController = new TreeController();
-    // save extension settings
-    // hide empty folders (vs code not handling it by default)
+    const exclusionController = new ExclusionController();
+    const selectionController = new SelectionController(context);
 
-    const projects = projectController.identifyProjects().then(
-        res => {
-            vscode.window.showInformationMessage(`Projectizer identified ${res.length} project`);
-            return res;
-        }
+    const currentSelection = selectionController.load();
+
+    projectController.identifyProjects(currentSelection).then(
+        res => window.showInformationMessage(`Projectizer identified ${res} project`)
     );
+    exclusionController.updateExclusions(currentSelection);
 
-    let disposable = vscode.commands.registerCommand('extension.projectize', () => {
-        vscode.window.showQuickPick(projects, {
+    let disposable = commands.registerCommand('extension.projectize', () => {
+        window.showQuickPick(projectController.getProjects(), {
             canPickMany: true,
-            onDidSelectItem: selected => treeController.updateTree(selected as Project)
+            onDidSelectItem: (selected: Project) => {
+                const selectedProjects = projectController.updateProjects(selected);
+                exclusionController.updateExclusions(selectedProjects);
+                selectionController.saveSelection(selectedProjects);
+            }
         });
     });
 
