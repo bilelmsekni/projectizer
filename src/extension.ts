@@ -2,15 +2,16 @@
 import { ProjectController } from './project.controller';
 import { ExclusionController } from './exclusion.controller';
 import { Project } from './project.model';
-import { SelectionController } from './selection.controller';
+// import { SelectionController } from './selection.controller';
 import { window, commands, ExtensionContext } from 'vscode';
 
 export function activate(context: ExtensionContext): void {
     const projectController = new ProjectController();
     const exclusionController = new ExclusionController();
-    const selectionController = new SelectionController(context);
+    // const selectionController = new SelectionController(context);
 
-    const currentSelection = selectionController.load();
+    // const currentSelection = selectionController.load();
+    const currentSelection: Project[] = [];
 
     projectController.identifyProjects(currentSelection).then(
         res => window.showInformationMessage(`Projectizer identified ${res} project`)
@@ -23,7 +24,7 @@ export function activate(context: ExtensionContext): void {
             onDidSelectItem: (selected: Project) => {
                 const selectedProjects = projectController.updateProjects(selected);
                 exclusionController.updateExclusions(selectedProjects);
-                selectionController.saveSelection(selectedProjects);
+                // selectionController.saveSelection(selectedProjects);
             }
         });
     });
