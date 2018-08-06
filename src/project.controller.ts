@@ -6,12 +6,14 @@ export class ProjectController {
     private projects: Project[] = [];
 
     identifyProjects(selected: Project[]): Thenable<number> {
-        return workspace.findFiles('**/*tsconfig.*.json', 'node_modules').then(res => {
-            this.projects = res.map(r => <Project>{
-                label: this.guessName(r.path),
-                config: r.path,
-                picked: selected.some(p => p.config === r.path)
-            });
+        return workspace.findFiles('**/*.tsconfig.app.json', 'node_modules').then(res => {
+
+            this.projects = res
+                .map(r => <Project>{
+                    label: this.guessName(r.path),
+                    config: r.path,
+                    picked: selected.some(p => p.config === r.path)
+                });
             return this.projects.length;
         });
     }
@@ -29,6 +31,6 @@ export class ProjectController {
 
     private guessName(path: string): string {
         const names = path.split('/');
-        return names[names.length - 1];
+        return names[names.length - 1].replace('.tsconfig.app.json', '');
     }
 }

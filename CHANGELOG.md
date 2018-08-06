@@ -1,7 +1,5 @@
 # Change Log
-All notable changes to the "projectizer" extension will be documented in this file.
+Projectizer is still in beta stages. Your feedbacks are welcome.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
+## [0.0.1]
 - Initial release
