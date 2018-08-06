@@ -6,8 +6,7 @@ export class ProjectController {
     private projects: Project[] = [];
 
     identifyProjects(selected: Project[]): Thenable<number> {
-        return workspace.findFiles('**/*.tsconfig.app.json', 'node_modules').then(res => {
-
+        return workspace.findFiles('**/*tsconfig.*.json', 'node_modules').then(res => {
             this.projects = res
                 .map(r => <Project>{
                     label: this.guessName(r.path),
