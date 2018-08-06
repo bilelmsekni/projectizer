@@ -4,7 +4,7 @@
   "description": "Monorepo code manager",
   "version": "0.0.1",
   "publisher": "skible",
-  "icon": "projectizer_icon.png",
+  "icon": "assets/projectizer_icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/mseknibilel/projectizer.git"
