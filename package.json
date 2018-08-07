@@ -10,20 +10,21 @@
     "url": "https://github.com/mseknibilel/projectizer.git"
   },
   "bugs": {
-    "url": "https://github.com/mseknibilel/projectizer/issues"
+    "url": "https://github.com/mseknibilel/projectizer/issues",
+    "email": "msekni.bilel@gmail.com"
   },
   "keywords": [
     "angular",
     "monorepository",
     "show",
     "hide",
-    "files",
     "exclude"
   ],
   "engines": {
     "vscode": "^1.25.0"
   },
   "categories": [
+    "Programming Languages",
     "Other"
   ],
   "activationEvents": [
