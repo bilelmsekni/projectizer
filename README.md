@@ -12,3 +12,7 @@ Projectizer detects angular projects inside your repository then helps you choos
 Angular 6 or above repository.
 
 ## [Having an issue ? report it here](https://github.com/mseknibilel/projectizer/issues)
+
+## License
+
+[LGPL-3.0](https://www.gnu.org/licenses/lgpl-3.0.fr.html)

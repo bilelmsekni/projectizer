@@ -13,7 +13,12 @@
     "url": "https://github.com/mseknibilel/projectizer/issues"
   },
   "keywords": [
-    "angular monorepository"
+    "angular",
+    "monorepository",
+    "show",
+    "hide",
+    "files",
+    "exclude"
   ],
   "engines": {
     "vscode": "^1.25.0"
