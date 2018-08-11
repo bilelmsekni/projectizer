@@ -7,10 +7,9 @@ export class ExclusionController {
 
     updateExclusions(projects: Project[]): void {
         const exclusions = projects
-            .filter(p => !this.isTestPattern(p))
             .map(p => this.analyseExcluded(p));
 
-        const patterns = this.mergePatterns(exclusions, projects.some(p => this.isTestPattern(p)));
+        const patterns = this.mergePatterns(exclusions);
         const allPatterns = this.addDependencies(patterns);
         const settings = this.updateSettings(allPatterns);
         writeJson(this.settingsPath, settings);
@@ -32,9 +31,11 @@ export class ExclusionController {
     }
 
     private analyseExcluded(project: Project): string[] {
-        const path = project.appConfig.slice(1);
-        const tsSettings = readJsonSync(path);
-        return tsSettings.exclude || [];
+        const appSettings = readJsonSync(`${workspace.rootPath}\\${project.appConfig}`);
+        const tstSettings = readJsonSync(`${workspace.rootPath}\\${project.testConfig}`);
+        const appExclude = appSettings.exclude || [];
+        const tstInclude = tstSettings.include || [];
+        return appExclude.filter((e: string) => !tstInclude.includes(e));
     }
 
     private updateSettings(patterns: { [key: string]: boolean | object }): { [key: string]: any } {
@@ -52,35 +53,19 @@ export class ExclusionController {
         return {};
     }
 
-    private mergePatterns(newPatterns: string[][], withSpec: boolean): { [key: string]: boolean } {
+    private mergePatterns(newPatterns: string[][]): { [key: string]: boolean } {
         const result: { [key: string]: boolean } = {};
         if (newPatterns && newPatterns.length > 0) {
-            let intersection = newPatterns[0];
+            let intersections = newPatterns[0];
             for (let i = 1; i < newPatterns.length; i++) {
-                intersection = intersection.filter(v => newPatterns[i].some(p => p === v));
+                intersections = intersections.filter(v => newPatterns[i].some(p => p === v));
             }
-            intersection.forEach(p => {
-                if (withSpec) {
-                    if (!this.isTestPattern(p)) {
-                        result[p] = true;
-                    }
-                } else {
-                    result[p] = true;
-                }
-
-            });
+            intersections.forEach(p => result[p] = true);
         }
         return result;
     }
 
     private get settingsPath(): string {
         return `${workspace.rootPath}\\.vscode\\settings.json`;
-    }
-
-    private isTestPattern(project: string | Project): boolean {
-        if (typeof (project) === 'string') {
-            return project.includes('.spec.ts') || project.includes('.spec-helpers.ts');
-        }
-        return project.appConfig.includes('.spec.json');
     }
 }
