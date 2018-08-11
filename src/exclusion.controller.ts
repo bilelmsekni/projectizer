@@ -32,7 +32,7 @@ export class ExclusionController {
     }
 
     private analyseExcluded(project: Project): string[] {
-        const path = project.config.slice(1);
+        const path = project.appConfig.slice(1);
         const tsSettings = readJsonSync(path);
         return tsSettings.exclude || [];
     }
@@ -81,6 +81,6 @@ export class ExclusionController {
         if (typeof (project) === 'string') {
             return project.includes('.spec.ts') || project.includes('.spec-helpers.ts');
         }
-        return project.config.includes('.spec.json');
+        return project.appConfig.includes('.spec.json');
     }
 }
