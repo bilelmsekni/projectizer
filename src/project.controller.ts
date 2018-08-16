@@ -6,18 +6,21 @@ export class ProjectController {
 
     private projects: Project[] = [];
 
-    identifyProjects(selected: Project[]): Thenable<number> {
+    identifyProjects(): Thenable<number> {
         return workspace.findFiles('**/angular.json', 'node_modules', 1).then(res => {
             if (res.length > 0) {
                 const ngConfig = readJsonSync(res[0].fsPath);
                 Object.keys(ngConfig.projects).forEach(project => {
-                    const tsConfigPath = this.extractAppConfigPath(ngConfig.projects[project]);
-                    if (tsConfigPath) {
+
+                    const appConfigPath = this.extractAppConfigPath(ngConfig.projects[project]);
+                    const tstConfigPath = this.extractTestConfigPath(ngConfig.projects[project]);
+                    if (appConfigPath) {
                         this.projects.push({
                             label: project,
-                            appConfig: tsConfigPath,
-                            testConfig: this.extractTestConfigPath(ngConfig.projects[project]),
-                            picked: selected.some(p => p.appConfig === tsConfigPath)
+                            exclude: this.extractExcluded(appConfigPath),
+                            include: this.extractIncluded(tstConfigPath),
+                            dependencies: this.extractDependencies(ngConfig.projects[project]),
+                            picked: false
                         });
                     }
                 });
@@ -30,11 +33,21 @@ export class ProjectController {
         return this.projects;
     }
 
-    updateProjects(selected: Project): Project[] {
-        const index = this.projects.findIndex(p => p.appConfig === selected.appConfig);
+    updateProjects(selected: Project): { selected: Project[], unselected: Project[] } {
+        const index = this.projects.findIndex(p => p.label === selected.label);
         selected.picked = !selected.picked;
         this.projects[index] = selected;
-        return this.projects.filter(p => p.picked);
+        return { selected: this.projects.filter(p => p.picked), unselected: this.projects.filter(p => !p.picked) };
+    }
+
+    private extractExcluded(configPath: string): string[] {
+        const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
+        return appSettings.exclude || [];
+    }
+
+    private extractIncluded(configPath: string): string[] {
+        const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
+        return appSettings.include || [];
     }
 
     private extractAppConfigPath(ngConfig: any): string {
@@ -43,5 +56,13 @@ export class ProjectController {
 
     private extractTestConfigPath(ngConfig: any): string {
         return ngConfig.architect.test ? ngConfig.architect.test.options.tsConfig : undefined;
+    }
+
+    private extractDependencies(ngConfig: any): string[] {
+        const assets = ngConfig.architect.build.options.assets || [];
+        const styles = ngConfig.architect.build.options.styles || [];
+        const scripts = ngConfig.architect.build.options.scripts || [];
+
+        return [ngConfig.architect.build.options.tsConfig, ...assets, ...styles, ...scripts];
     }
 }

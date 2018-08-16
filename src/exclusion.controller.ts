@@ -5,9 +5,11 @@ import { workspace } from 'vscode';
 
 export class ExclusionController {
 
-    updateExclusions(projects: Project[]): void {
-        const exclusions = projects
-            .map(p => this.analyseExcluded(p));
+    updateExclusions(projects: { selected: Project[], unselected: Project[] }): void {
+        const exclusions = projects.selected
+            .map(p => this.analyseSelected(p));
+
+        // const dependencies = this.mergeDependencies(projects.selected, projects.unselected);
 
         const patterns = this.mergePatterns(exclusions);
         const allPatterns = this.addDependencies(patterns);
@@ -15,12 +17,17 @@ export class ExclusionController {
         writeJson(this.settingsPath, settings);
     }
 
-    private analyseExcluded(project: Project): string[] {
-        const appSettings = readJsonSync(`${workspace.rootPath}\\${project.appConfig}`);
-        const tstSettings = readJsonSync(`${workspace.rootPath}\\${project.testConfig}`);
-        const appExclude = appSettings.exclude || [];
-        const tstInclude = tstSettings.include || [];
-        return appExclude.filter((e: string) => !tstInclude.includes(e));
+    private analyseSelected(project: Project): string[] {
+        return project.exclude.filter((e: string) => project.include.indexOf(e) < 0);
+    }
+
+    private mergeDependencies(selected: Project[], unselected: Project[]): string[] {
+        const unselectedDependencies: string[] = [];
+        const selectedDependencies: string[] = [];
+        unselected.forEach(u => unselectedDependencies.push(...u.include));
+        selected.forEach(u => selectedDependencies.push(...u.include));
+
+        return unselectedDependencies.filter(ud => selectedDependencies.indexOf(ud) === -1);
     }
 
     private mergePatterns(newPatterns: string[][]): { [key: string]: boolean } {
