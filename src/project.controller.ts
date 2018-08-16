@@ -19,7 +19,7 @@ export class ProjectController {
                             label: project,
                             exclude: this.extractExcluded(appConfigPath),
                             include: this.extractIncluded(tstConfigPath),
-                            dependencies: this.extractDependencies(ngConfig.projects[project]),
+                            assets: this.extractDependencies(ngConfig.projects[project]),
                             picked: false
                         });
                     }

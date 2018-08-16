@@ -6,36 +6,34 @@ import { workspace } from 'vscode';
 export class ExclusionController {
 
     updateExclusions(projects: { selected: Project[], unselected: Project[] }): void {
-        const exclusions = projects.selected
-            .map(p => this.analyseSelected(p));
+        const patterns = this.mergeExclusions(projects.selected);
+        const assets = this.mergeAssets(projects.selected, projects.unselected);
 
-        // const dependencies = this.mergeDependencies(projects.selected, projects.unselected);
-
-        const patterns = this.mergePatterns(exclusions);
         const allPatterns = this.addDependencies(patterns);
-        const settings = this.updateSettings(allPatterns);
+        const settings = this.updateSettings({ ...allPatterns, ...assets });
         writeJson(this.settingsPath, settings);
     }
 
-    private analyseSelected(project: Project): string[] {
-        return project.exclude.filter((e: string) => project.include.indexOf(e) < 0);
-    }
-
-    private mergeDependencies(selected: Project[], unselected: Project[]): string[] {
-        const unselectedDependencies: string[] = [];
-        const selectedDependencies: string[] = [];
-        unselected.forEach(u => unselectedDependencies.push(...u.include));
-        selected.forEach(u => selectedDependencies.push(...u.include));
-
-        return unselectedDependencies.filter(ud => selectedDependencies.indexOf(ud) === -1);
-    }
-
-    private mergePatterns(newPatterns: string[][]): { [key: string]: boolean } {
+    private mergeAssets(selected: Project[], unselected: Project[]): { [key: string]: boolean } {
         const result: { [key: string]: boolean } = {};
-        if (newPatterns && newPatterns.length > 0) {
-            let intersections = newPatterns[0];
-            for (let i = 1; i < newPatterns.length; i++) {
-                intersections = intersections.filter(v => newPatterns[i].some(p => p === v));
+        const unselectedAssets: string[] = [];
+        const selectedAssets: string[] = [];
+        unselected.forEach(u => unselectedAssets.push(...u.assets));
+        selected.forEach(u => selectedAssets.push(...u.assets));
+
+        const intersections = unselectedAssets.filter(ud => selectedAssets.indexOf(ud) === -1);
+        intersections.forEach(p => result[p] = true);
+        return result;
+    }
+
+    private mergeExclusions(selected: Project[]): { [key: string]: boolean } {
+        const result: { [key: string]: boolean } = {};
+        const exclusions = selected.map(s => s.exclude.filter((e: string) => s.include.indexOf(e) === -1));
+
+        if (exclusions && exclusions.length > 0) {
+            let intersections = exclusions[0];
+            for (let i = 1; i < exclusions.length; i++) {
+                intersections = intersections.filter(v => exclusions[i].some(p => p === v));
             }
             intersections.forEach(p => result[p] = true);
         }
