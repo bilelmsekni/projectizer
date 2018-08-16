@@ -5,7 +5,7 @@ Projectizer detects angular projects inside your repository then helps you choos
 
 ![preview](https://github.com/mseknibilel/projectizer/raw/master/assets/feature.gif)
 
-> Use the `Projectize` command to select which project to focus on.
+> Use the `Projectize` command or telescope status bar icon to select which project to focus on.
 
 ## Requirements
 

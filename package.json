@@ -2,7 +2,7 @@
   "name": "projectizer",
   "displayName": "Projectizer",
   "description": "Monorepo code manager",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "publisher": "skible",
   "icon": "assets/projectizer_icon.png",
   "repository": {

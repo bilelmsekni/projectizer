@@ -4,7 +4,7 @@ Projectizer is still in beta stages. Your feedbacks are welcome.
 ## [0.0.1]
 - Initial release
 
-## [0.1.0]
+## [0.1.1]
 
 ### Features
 - Usage of angular.json to detect current projects (closes [read from angular.json](https://github.com/mseknibilel/projectizer/issues/2))
