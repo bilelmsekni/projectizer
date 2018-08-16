@@ -1,23 +1,27 @@
 'use strict';
 import { ProjectController } from './project.controller';
 import { ExclusionController } from './exclusion.controller';
+import { window, commands, ExtensionContext, StatusBarAlignment } from 'vscode';
+import { StatusController } from './status.controller';
+import { PROJECTIZE_COMMAND } from './constants';
 import { Project } from './project.model';
-import { window, commands, ExtensionContext } from 'vscode';
 
 export function activate(context: ExtensionContext): void {
     const projectController = new ProjectController();
     const exclusionController = new ExclusionController();
+    const statusController = new StatusController(window.createStatusBarItem(StatusBarAlignment.Right));
 
     projectController.identifyProjects().then(res => window.showInformationMessage(`Projectizer identified ${res} project`));
     exclusionController.resetExclusions();
+    let disposable = commands.registerCommand(PROJECTIZE_COMMAND, () => {
 
-    let disposable = commands.registerCommand('extension.projectize', () => {
         window.showQuickPick(projectController.getProjects(), {
             canPickMany: true,
-            onDidSelectItem: (selected: Project) => {
-                const updatedProjects = projectController.updateProjects(selected);
-                exclusionController.updateExclusions(updatedProjects);
-            }
+            placeHolder: 'Focus on a project'
+        }).then(selected => {
+            const updatedProjects = projectController.updateProjects(selected as Project[]);
+            exclusionController.updateExclusions(updatedProjects);
+            statusController.updateStatus(updatedProjects);
         });
     });
 

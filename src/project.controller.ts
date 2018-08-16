@@ -33,10 +33,8 @@ export class ProjectController {
         return this.projects;
     }
 
-    updateProjects(selected: Project): { selected: Project[], unselected: Project[] } {
-        const index = this.projects.findIndex(p => p.label === selected.label);
-        selected.picked = !selected.picked;
-        this.projects[index] = selected;
+    updateProjects(selected: Project[]): { selected: Project[], unselected: Project[] } {
+        this.projects.forEach(p => p.picked = selected.findIndex(s => s.label === p.label) > -1);
         return { selected: this.projects.filter(p => p.picked), unselected: this.projects.filter(p => !p.picked) };
     }
 
