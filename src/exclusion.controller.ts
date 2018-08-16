@@ -1,17 +1,25 @@
 import { Project } from './project.model';
-import { writeJson, existsSync, readJsonSync } from 'fs-extra';
+import { existsSync, readJsonSync, createFileSync, writeJsonSync } from 'fs-extra';
 import { FILES_EXCLUDE } from './constants';
 import { workspace } from 'vscode';
 
 export class ExclusionController {
 
     updateExclusions(projects: { selected: Project[], unselected: Project[] }): void {
-        const patterns = this.mergeExclusions(projects.selected);
-        const assets = this.mergeAssets(projects.selected, projects.unselected);
+        if (projects.selected.length > 0) {
+            const patterns = this.mergeExclusions(projects.selected);
+            const assets = this.mergeAssets(projects.selected, projects.unselected);
+            const allPatterns = this.addDependencies(patterns);
+            const settings = this.updateSettings({ ...allPatterns, ...assets });
+            writeJsonSync(this.settingsPath, settings);
+        } else {
+            this.resetExclusions();
+        }
+    }
 
-        const allPatterns = this.addDependencies(patterns);
-        const settings = this.updateSettings({ ...allPatterns, ...assets });
-        writeJson(this.settingsPath, settings);
+    resetExclusions(): void {
+        const settings = this.updateSettings({});
+        writeJsonSync(this.settingsPath, settings);
     }
 
     private mergeAssets(selected: Project[], unselected: Project[]): { [key: string]: boolean } {
@@ -65,7 +73,7 @@ export class ExclusionController {
         if (existsSync(this.settingsPath)) {
             return readJsonSync(this.settingsPath);
         } else {
-
+            createFileSync(this.settingsPath);
         }
         return {};
     }
