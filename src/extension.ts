@@ -1,10 +1,10 @@
 'use strict';
 import { ProjectController } from './project.controller';
 import { ExclusionController } from './exclusion.controller';
-import { Project } from './project.model';
 import { window, commands, ExtensionContext, StatusBarAlignment } from 'vscode';
 import { StatusController } from './status.controller';
 import { PROJECTIZE_COMMAND } from './constants';
+import { Project } from './project.model';
 
 export function activate(context: ExtensionContext): void {
     const projectController = new ProjectController();
@@ -17,11 +17,11 @@ export function activate(context: ExtensionContext): void {
 
         window.showQuickPick(projectController.getProjects(), {
             canPickMany: true,
-            onDidSelectItem: (selected: Project) => {
-                const updatedProjects = projectController.updateProjects(selected);
-                exclusionController.updateExclusions(updatedProjects);
-                statusController.updateStatus(updatedProjects);
-            }
+            placeHolder: 'Focus on a project'
+        }).then(selected => {
+            const updatedProjects = projectController.updateProjects(selected as Project[]);
+            exclusionController.updateExclusions(updatedProjects);
+            statusController.updateStatus(updatedProjects);
         });
     });
 
