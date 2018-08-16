@@ -9,7 +9,7 @@ export function activate(context: ExtensionContext): void {
     const exclusionController = new ExclusionController();
 
     projectController.identifyProjects().then(res => window.showInformationMessage(`Projectizer identified ${res} project`));
-    exclusionController.updateExclusions({ selected: [], unselected: [] });
+    exclusionController.resetExclusions();
 
     let disposable = commands.registerCommand('extension.projectize', () => {
         window.showQuickPick(projectController.getProjects(), {
