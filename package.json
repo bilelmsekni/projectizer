@@ -28,7 +28,7 @@
     "Other"
   ],
   "activationEvents": [
-    "workspaceContains:**/tsconfig.json",
+    "workspaceContains:**/angular.json",
     "onCommand:extension.projectize"
   ],
   "main": "./out/extension",

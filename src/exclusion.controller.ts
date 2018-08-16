@@ -5,15 +5,39 @@ import { workspace } from 'vscode';
 
 export class ExclusionController {
 
-    updateExclusions(projects: Project[]): void {
-        const exclusions = projects
-            .filter(p => !this.isTestPattern(p))
-            .map(p => this.analyseExcluded(p));
+    updateExclusions(projects: { selected: Project[], unselected: Project[] }): void {
+        const patterns = this.mergeExclusions(projects.selected);
+        const assets = this.mergeAssets(projects.selected, projects.unselected);
 
-        const patterns = this.mergePatterns(exclusions, projects.some(p => this.isTestPattern(p)));
         const allPatterns = this.addDependencies(patterns);
-        const settings = this.updateSettings(allPatterns);
+        const settings = this.updateSettings({ ...allPatterns, ...assets });
         writeJson(this.settingsPath, settings);
+    }
+
+    private mergeAssets(selected: Project[], unselected: Project[]): { [key: string]: boolean } {
+        const result: { [key: string]: boolean } = {};
+        const unselectedAssets: string[] = [];
+        const selectedAssets: string[] = [];
+        unselected.forEach(u => unselectedAssets.push(...u.assets));
+        selected.forEach(u => selectedAssets.push(...u.assets));
+
+        const intersections = unselectedAssets.filter(ud => selectedAssets.indexOf(ud) === -1);
+        intersections.forEach(p => result[p] = true);
+        return result;
+    }
+
+    private mergeExclusions(selected: Project[]): { [key: string]: boolean } {
+        const result: { [key: string]: boolean } = {};
+        const exclusions = selected.map(s => s.exclude.filter((e: string) => s.include.indexOf(e) === -1));
+
+        if (exclusions && exclusions.length > 0) {
+            let intersections = exclusions[0];
+            for (let i = 1; i < exclusions.length; i++) {
+                intersections = intersections.filter(v => exclusions[i].some(p => p === v));
+            }
+            intersections.forEach(p => result[p] = true);
+        }
+        return result;
     }
 
     private addDependencies(patterns: { [key: string]: boolean }): { [key: string]: object | boolean } {
@@ -31,12 +55,6 @@ export class ExclusionController {
         return additionalPatterns;
     }
 
-    private analyseExcluded(project: Project): string[] {
-        const path = project.config.slice(1);
-        const tsSettings = readJsonSync(path);
-        return tsSettings.exclude || [];
-    }
-
     private updateSettings(patterns: { [key: string]: boolean | object }): { [key: string]: any } {
         const settings = this.getCurrentSettings();
         settings[FILES_EXCLUDE] = patterns;
@@ -52,35 +70,7 @@ export class ExclusionController {
         return {};
     }
 
-    private mergePatterns(newPatterns: string[][], withSpec: boolean): { [key: string]: boolean } {
-        const result: { [key: string]: boolean } = {};
-        if (newPatterns && newPatterns.length > 0) {
-            let intersection = newPatterns[0];
-            for (let i = 1; i < newPatterns.length; i++) {
-                intersection = intersection.filter(v => newPatterns[i].some(p => p === v));
-            }
-            intersection.forEach(p => {
-                if (withSpec) {
-                    if (!this.isTestPattern(p)) {
-                        result[p] = true;
-                    }
-                } else {
-                    result[p] = true;
-                }
-
-            });
-        }
-        return result;
-    }
-
     private get settingsPath(): string {
         return `${workspace.rootPath}\\.vscode\\settings.json`;
-    }
-
-    private isTestPattern(project: string | Project): boolean {
-        if (typeof (project) === 'string') {
-            return project.includes('.spec.ts') || project.includes('.spec-helpers.ts');
-        }
-        return project.config.includes('.spec.json');
     }
 }
