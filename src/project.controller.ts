@@ -16,6 +16,7 @@ export class ProjectController {
                     const tstConfigPath = this.extractTestConfigPath(ngConfig.projects[project]);
                     if (appConfigPath) {
                         this.projects.push({
+                            root: this.extractRootPath(ngConfig.projects[project]),
                             label: project,
                             exclude: this.extractExcluded(appConfigPath),
                             include: this.extractIncluded(tstConfigPath),
@@ -38,14 +39,24 @@ export class ProjectController {
         return { selected: this.projects.filter(p => p.picked), unselected: this.projects.filter(p => !p.picked) };
     }
 
+    private extractRootPath(ngConfig: any): string {
+        return ngConfig.root || ngConfig.sourceRoot;
+    }
+
     private extractExcluded(configPath: string): string[] {
-        const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
-        return appSettings.exclude || [];
+        if (!!configPath) {
+            const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
+            return appSettings.exclude || [];
+        }
+        return [];
     }
 
     private extractIncluded(configPath: string): string[] {
-        const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
-        return appSettings.include || [];
+        if (!!configPath) {
+            const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
+            return appSettings.include || [];
+        }
+        return [];
     }
 
     private extractAppConfigPath(ngConfig: any): string {
