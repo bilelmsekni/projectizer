@@ -1,7 +1,7 @@
 # Projectizer
 
 Projectizer detects angular projects inside your repository then helps you choose which project you would like to work on by filtering files and folders in visual code explorer.
-
+## [Read more about it on medium](https://medium.com/@msekni.bilel/in-the-world-of-monorepos-11a7fe8ef80a)
 
 ![preview](https://github.com/mseknibilel/projectizer/raw/master/assets/feature.gif)
 
