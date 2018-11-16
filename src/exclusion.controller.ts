@@ -8,9 +8,10 @@ export class ExclusionController {
     updateExclusions(projects: { selected: Project[], unselected: Project[] }): void {
         if (projects.selected.length > 0) {
             const patterns = this.mergeExclusions(projects.selected);
+            const excludedroots = this.extractExcludedRoots(projects.selected, projects.unselected);
             const assets = this.mergeAssets(projects.selected, projects.unselected);
             const allPatterns = this.addDependencies(patterns);
-            const settings = this.updateSettings({ ...allPatterns, ...assets });
+            const settings = this.updateSettings({ ...excludedroots, ...allPatterns, ...assets });
             writeJsonSync(this.settingsPath, settings);
         } else {
             this.resetExclusions();
@@ -20,6 +21,15 @@ export class ExclusionController {
     resetExclusions(): void {
         const settings = this.updateSettings({});
         writeJsonSync(this.settingsPath, settings);
+    }
+
+    private extractExcludedRoots(selected: Project[], unselected: Project[]): { [key: string]: boolean } {
+        const result: { [key: string]: boolean } = {};
+        const selectedRoots = selected.map(s => s.root);
+        const unSelectedRoots = unselected.map(s => s.root);
+        const ignoreRoots = unSelectedRoots.filter(us => selectedRoots.indexOf(us) === -1);
+        ignoreRoots.forEach(ir => result[ir] = true);
+        return result;
     }
 
     private mergeAssets(selected: Project[], unselected: Project[]): { [key: string]: boolean } {

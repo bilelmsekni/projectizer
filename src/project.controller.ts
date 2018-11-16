@@ -14,15 +14,16 @@ export class ProjectController {
 
                     const appConfigPath = this.extractAppConfigPath(ngConfig.projects[project]);
                     const tstConfigPath = this.extractTestConfigPath(ngConfig.projects[project]);
-                    if (appConfigPath) {
-                        this.projects.push({
-                            label: project,
-                            exclude: this.extractExcluded(appConfigPath),
-                            include: this.extractIncluded(tstConfigPath),
-                            assets: this.extractDependencies(ngConfig.projects[project]),
-                            picked: false
-                        });
-                    }
+                    // if (appConfigPath) {
+                    this.projects.push({
+                        root: this.extractRootPath(ngConfig.projects[project]),
+                        label: project,
+                        exclude: this.extractExcluded(appConfigPath),
+                        include: this.extractIncluded(tstConfigPath),
+                        assets: this.extractDependencies(ngConfig.projects[project]),
+                        picked: false
+                    });
+                    // }
                 });
             }
             return this.projects.length;
@@ -38,14 +39,24 @@ export class ProjectController {
         return { selected: this.projects.filter(p => p.picked), unselected: this.projects.filter(p => !p.picked) };
     }
 
+    private extractRootPath(ngConfig: any): string {
+        return ngConfig.root || ngConfig.sourceRoot;
+    }
+
     private extractExcluded(configPath: string): string[] {
-        const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
-        return appSettings.exclude || [];
+        if (!!configPath) {
+            const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
+            return appSettings.exclude || [];
+        }
+        return [];
     }
 
     private extractIncluded(configPath: string): string[] {
-        const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
-        return appSettings.include || [];
+        if (!!configPath) {
+            const appSettings = readJsonSync(`${workspace.rootPath}\\${configPath}`);
+            return appSettings.include || [];
+        }
+        return [];
     }
 
     private extractAppConfigPath(ngConfig: any): string {
@@ -57,10 +68,11 @@ export class ProjectController {
     }
 
     private extractDependencies(ngConfig: any): string[] {
-        const assets = ngConfig.architect.build.options.assets || [];
-        const styles = ngConfig.architect.build.options.styles || [];
-        const scripts = ngConfig.architect.build.options.scripts || [];
+        const assets = ngConfig.architect.build && ngConfig.architect.build.options && ngConfig.architect.build.options.assets ? ngConfig.architect.build.options.assets : [];
+        const styles = ngConfig.architect.build && ngConfig.architect.build.options && ngConfig.architect.build.options.styles ? ngConfig.architect.build.options.styles : [];
+        const scripts = ngConfig.architect.build && ngConfig.architect.build.options && ngConfig.architect.build.options.scripts ? ngConfig.architect.build.options.scripts : [];
+        const tsConfig = ngConfig.architect.build && ngConfig.architect.build.options ? [ngConfig.architect.build.options.tsConfig] : [];
 
-        return [ngConfig.architect.build.options.tsConfig, ...assets, ...styles, ...scripts];
+        return [...tsConfig, ...assets, ...styles, ...scripts];
     }
 }
